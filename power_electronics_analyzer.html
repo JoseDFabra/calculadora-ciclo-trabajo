@@ -168,8 +168,8 @@
         }
 
         .charts-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 30px;
             margin-bottom: 30px;
         }
@@ -190,12 +190,11 @@
 
         .chart-container {
             position: relative;
-            height: 300px;
+            height: 350px;
         }
 
-        .combined-chart {
-            grid-column: 1 / -1;
-            height: 400px;
+        .full-width {
+            width: 100%;
         }
 
         .loading {
@@ -224,10 +223,6 @@
 
         @media (max-width: 1024px) {
             .main-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .charts-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -662,21 +657,21 @@
                 <div class="loading" id="charts-loading">Generando gráficas...</div>
                 
                 <div class="charts-grid" id="charts-grid" style="display: none;">
-                    <div class="chart-wrapper">
+                    <div class="chart-wrapper full-width">
                         <h3>Factor de Transformación (Md) vs Duty Cycle (D)</h3>
                         <div class="chart-container">
                             <canvas id="md-chart"></canvas>
                         </div>
                     </div>
 
-                    <div class="chart-wrapper">
+                    <div class="chart-wrapper full-width">
                         <h3>Eficiencia (n) vs Duty Cycle (D)</h3>
                         <div class="chart-container">
                             <canvas id="efficiency-chart"></canvas>
                         </div>
                     </div>
 
-                    <div class="chart-wrapper combined-chart">
+                    <div class="chart-wrapper full-width">
                         <h3>Comparación: Md y Eficiencia vs Duty Cycle</h3>
                         <div class="chart-container">
                             <canvas id="combined-chart"></canvas>
@@ -867,21 +862,19 @@
         // Función para calcular puntos críticos analíticamente para la expresión por defecto
         function calculateAnalyticalCriticalPoints(Rl, R) {
             // Para la expresión Md = D / ((1-D) + Rl/(R-R*D))
-            // La derivada correcta (calculada simbólicamente) es compleja
-            // Vamos a usar la fórmula exacta que produce MATLAB
+            // Según el código MATLAB, las fórmulas exactas son:
+            // D1 = (R + Rl + sqrt(Rl * (R + Rl))) / R  (Raíz positiva)
+            // D2 = (R + Rl - sqrt(Rl * (R + Rl))) / R  (Raíz negativa)
             
-            // Según el análisis de la derivada simbólica de MATLAB, los puntos críticos son:
-            // D = (R ± √(R² - R*Rl)) / R
-            
-            const discriminant = R * R - R * Rl;
+            const discriminant = Rl * (R + Rl);
             
             const criticalPoints = [];
             const allPoints = [];
             
             if (discriminant >= 0) {
                 const sqrtDiscriminant = Math.sqrt(discriminant);
-                const D1 = (R + sqrtDiscriminant) / R;
-                const D2 = (R - sqrtDiscriminant) / R;
+                const D1 = (R + Rl + sqrtDiscriminant) / R;  // Raíz positiva
+                const D2 = (R + Rl - sqrtDiscriminant) / R;  // Raíz negativa
                 
                 // Calcular Md para ambos puntos
                 const calculateMdDirect = (D) => {
@@ -889,20 +882,26 @@
                     return D / ((1 - D) + Rl / (R - R * D));
                 };
                 
+                // Calcular eficiencia directamente para ambos puntos
+                const calculateEfficiencyDirect = (D) => {
+                    if (Math.abs(R * D - R) < 1e-10) return null;
+                    return (1 - D) / ((1 - D) + Rl / (R - R * D));
+                };
+                
                 // Procesar D1
                 const md1 = calculateMdDirect(D1);
+                const eff1 = calculateEfficiencyDirect(D1);
                 if (md1 !== null && !isNaN(md1) && isFinite(md1)) {
                     const inRange1 = D1 > 0 && D1 < 1;
                     allPoints.push({
                         D: D1,
                         Md: md1,
-                        efficiency: null,
+                        efficiency: eff1,
                         type: 'D1 (Raíz positiva)',
                         inRange: inRange1
                     });
                     
                     if (inRange1) {
-                        const eff1 = calculateEfficiency(D1, Rl, R);
                         criticalPoints.push({
                             D: D1,
                             Md: md1,
@@ -914,18 +913,18 @@
                 
                 // Procesar D2
                 const md2 = calculateMdDirect(D2);
+                const eff2 = calculateEfficiencyDirect(D2);
                 if (md2 !== null && !isNaN(md2) && isFinite(md2)) {
                     const inRange2 = D2 > 0 && D2 < 1;
                     allPoints.push({
                         D: D2,
                         Md: md2,
-                        efficiency: null,
+                        efficiency: eff2,
                         type: 'D2 (Raíz negativa)',
                         inRange: inRange2
                     });
                     
                     if (inRange2) {
-                        const eff2 = calculateEfficiency(D2, Rl, R);
                         criticalPoints.push({
                             D: D2,
                             Md: md2,
@@ -1082,6 +1081,7 @@
                 const criticalPointsResult = findCriticalPoints(Rl, R);
                 const criticalPoints = criticalPointsResult.validPoints || criticalPointsResult;
                 const allCriticalPoints = criticalPointsResult.allPoints || criticalPointsResult;
+                
 
                 // Actualizar resultados
                 updateCriticalPointsDisplay(criticalPoints, allCriticalPoints);
@@ -1089,9 +1089,11 @@
                 // Mostrar información de depuración
                 updateDebugInfo(Rl, R, criticalPointsResult);
 
-                // Crear gráficas
+                // Crear gráficas - usar TODOS los puntos críticos para las gráficas
                 setTimeout(() => {
-                    createCharts(DValues, MdValues, efficiencyValues, criticalPoints);
+                    // Para las gráficas, mostrar todos los puntos críticos (incluso fuera de rango)
+                    const allPointsForCharts = allCriticalPoints.length > 0 ? allCriticalPoints : criticalPoints;
+                    createCharts(DValues, MdValues, efficiencyValues, allPointsForCharts);
                     document.getElementById('charts-loading').classList.remove('show');
                     document.getElementById('charts-grid').style.display = 'grid';
                 }, 500);
@@ -1166,20 +1168,20 @@
             debugHtml += `Rl = ${Rl}<br>`;
             debugHtml += `R = ${R}<br><br>`;
             
-            // Calcular usando la fórmula simplificada
-            const discriminant = R * R - R * Rl;
+            // Calcular usando la fórmula correcta de MATLAB
+            const discriminant = Rl * (R + Rl);
             
-            debugHtml += `<strong>Fórmula simplificada D = (R ± √(R² - R*Rl)) / R:</strong><br>`;
-            debugHtml += `Discriminante = R² - R*Rl = ${R}² - ${R}*${Rl} = ${discriminant.toFixed(6)}<br><br>`;
+            debugHtml += `<strong>Fórmula de MATLAB D = (R + Rl ± √(Rl*(R + Rl))) / R:</strong><br>`;
+            debugHtml += `Discriminante = Rl*(R + Rl) = ${Rl}*(${R} + ${Rl}) = ${discriminant.toFixed(6)}<br><br>`;
             
             if (discriminant >= 0) {
                 const sqrtDiscriminant = Math.sqrt(discriminant);
-                const D1 = (R + sqrtDiscriminant) / R;
-                const D2 = (R - sqrtDiscriminant) / R;
+                const D1 = (R + Rl + sqrtDiscriminant) / R;
+                const D2 = (R + Rl - sqrtDiscriminant) / R;
                 
                 debugHtml += `<strong>Raíces calculadas:</strong><br>`;
-                debugHtml += `D1 = (R + √discriminante) / R = ${D1.toFixed(6)}<br>`;
-                debugHtml += `D2 = (R - √discriminante) / R = ${D2.toFixed(6)}<br><br>`;
+                debugHtml += `D1 = (R + Rl + √discriminante) / R = ${D1.toFixed(6)}<br>`;
+                debugHtml += `D2 = (R + Rl - √discriminante) / R = ${D2.toFixed(6)}<br><br>`;
                 
                 // Calcular Md para verificación
                 const calculateMdDirect = (D) => {
@@ -1259,7 +1261,7 @@
                     }, {
                         label: 'Puntos Críticos',
                         data: criticalPoints.map(p => ({
-                            x: (p.D * 100).toFixed(0),
+                            x: p.D.toFixed(2),
                             y: p.Md
                         })),
                         backgroundColor: '#e74c3c',
@@ -1301,7 +1303,7 @@
                     }, {
                         label: 'Puntos Críticos',
                         data: criticalPoints.map(p => ({
-                            x: (p.D * 100).toFixed(0),
+                            x: p.D.toFixed(2),
                             y: p.efficiency
                         })),
                         backgroundColor: '#e74c3c',
@@ -1348,6 +1350,30 @@
                         borderWidth: 2,
                         yAxisID: 'y1',
                         tension: 0.4
+                    }, {
+                        label: 'Puntos Críticos Md',
+                        data: criticalPoints.map(p => ({
+                            x: p.D.toFixed(2),
+                            y: p.Md
+                        })),
+                        backgroundColor: '#e74c3c',
+                        borderColor: '#e74c3c',
+                        type: 'scatter',
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Puntos Críticos n',
+                        data: criticalPoints.map(p => ({
+                            x: p.D.toFixed(2),
+                            y: p.efficiency
+                        })),
+                        backgroundColor: '#9b59b6',
+                        borderColor: '#9b59b6',
+                        type: 'scatter',
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        yAxisID: 'y1'
                     }]
                 },
                 options: {
