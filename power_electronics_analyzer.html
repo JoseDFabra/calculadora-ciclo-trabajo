@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de Electrónica de Potencia</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.0/lib/browser/math.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 1px solid #e9ecef;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .control-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .control-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .unit {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+
+        .results-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 25px;
+            border: 1px solid #e9ecef;
+        }
+
+        .results-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: #34495e;
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: #2c3e50;
+            font-family: 'Courier New', monospace;
+        }
+
+        .charts-container {
+            padding: 30px;
+            background: white;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-wrapper {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-wrapper h3 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .combined-chart {
+            grid-column: 1 / -1;
+            height: 400px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .controls-panel, .charts-container {
+                padding: 20px;
+            }
+        }
+
+        .formula-display {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .expression-help {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: #e8f4fd;
+            border-radius: 5px;
+            border-left: 3px solid #3498db;
+        }
+
+        .expression-help small {
+            color: #2c3e50;
+            line-height: 1.4;
+        }
+
+        input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
+
+        .syntax-error {
+            background: #ffeaa7;
+            border-color: #fdcb6e;
+            color: #e17055;
+        }
+
+        .syntax-valid {
+            background: #d1f2eb;
+            border-color: #27ae60;
+        }
+
+        .fraction-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 10px;
+            max-width: 400px;
+        }
+
+        .fraction-part {
+            width: 100%;
+        }
+
+        .fraction-label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #34495e;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .fraction-part textarea {
+            min-height: 50px;
+            margin: 0;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        .fraction-divider {
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #3498db 0%, #2980b9 100%);
+            margin: 8px 0;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .fraction-divider::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: #3498db;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+        }
+
+        .fraction-container {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .fraction-container:hover {
+            border-color: #3498db;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.1);
+        }
+
+        .mode-switch {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .mode-switch-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 64px;
+            height: 32px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 32px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 28px;
+            width: 28px;
+            left: 2px;
+            top: 2px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(32px);
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3), 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .mode-label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+            text-align: center;
+            min-width: 100px;
+            transition: all 0.3s ease;
+        }
+
+        .mode-label.active {
+            color: #3498db;
+            font-weight: 700;
+        }
+
+        .switch:hover .slider {
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1), 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .simple-input {
+            display: none;
+        }
+
+        .simple-input.active {
+            display: block;
+        }
+
+        .fraction-container.hidden {
+            display: none;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .quick-btn {
+            background: linear-gradient(135deg, #ffffff 0%, #f1f2f6 100%);
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.85rem;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #2c3e50;
+            font-weight: 500;
+            min-width: 35px;
+            text-align: center;
+        }
+
+        .quick-btn:hover {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+        }
+
+        .quick-btn:active {
+            transform: translateY(0);
+        }
+
+        .quick-actions-label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .critical-points {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .critical-points h4 {
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .point {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Analizador de Electrónica de Potencia</h1>
+            <p>Análisis de Factor de Transformación y Eficiencia vs Duty Cycle</p>
+        </div>
+
+        <div class="main-content">
+            <div class="controls-panel">
+                <div class="control-group">
+                    <label for="rl-input">Resistencia de Carga (Rl)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="rl-input" value="0.380" step="0.001" min="0.001">
+                        <span class="unit">Ω</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="r-input">Resistencia (R)</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="r-input" value="5" step="0.1" min="0.1">
+                        <span class="unit">Ω</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Factor de Transformación (Md)</label>
+                    
+                    <div class="mode-switch">
+                        <div class="mode-switch-content">
+                            <span class="mode-label" id="simple-label">Expresión Simple</span>
+                            <label class="switch">
+                                <input type="checkbox" id="fraction-mode-switch" onchange="toggleFractionMode()">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="mode-label" id="fraction-label">Fracción (Num/Den)</span>
+                        </div>
+                    </div>
+
+                    <!-- Modo Simple -->
+                    <div class="simple-input" id="simple-mode">
+                        <label for="md-simple">Expresión de Md</label>
+                        <div class="quick-actions-label">Acciones Rápidas:</div>
+                        <div class="quick-actions" id="simple-quick-actions">
+                            <button class="quick-btn" onclick="insertText('md-simple', 'sqrt()')">√</button>
+                            <button class="quick-btn" onclick="insertText('md-simple', '^2')">x²</button>
+                            <button class="quick-btn" onclick="insertText('md-simple', '^')">x^</button>
+                            <button class="quick-btn" onclick="insertText('md-simple', 'sin()')">sin</button>
+                            <button class="quick-btn" onclick="insertText('md-simple', 'cos()')">cos</button>
+                            <button class="quick-btn" onclick="insertText('md-simple', 'exp()')">eˣ</button>
+                            <button class="quick-btn" onclick="insertText('md-simple', 'log()')">ln</button>
+                            <button class="quick-btn" onclick="insertText('md-simple', 'abs()')">|x|</button>
+                            <button class="quick-btn" onclick="insertText('md-simple', '()')">()</button>
+                        </div>
+                        <textarea id="md-simple" placeholder="Ejemplo: D / ((1-D) + Rl/(R-R*D))">D / ((1-D) + Rl/(R-R*D))</textarea>
+                    </div>
+
+                    <!-- Modo Fracción -->
+                    <div class="fraction-container" id="fraction-mode">
+                        <div class="quick-actions-label">Acciones Rápidas:</div>
+                        <div class="quick-actions" id="fraction-quick-actions">
+                            <button class="quick-btn" onclick="insertTextToActive('sqrt()')">√</button>
+                            <button class="quick-btn" onclick="insertTextToActive('^2')">x²</button>
+                            <button class="quick-btn" onclick="insertTextToActive('^')">x^</button>
+                            <button class="quick-btn" onclick="insertTextToActive('sin()')">sin</button>
+                            <button class="quick-btn" onclick="insertTextToActive('cos()')">cos</button>
+                            <button class="quick-btn" onclick="insertTextToActive('exp()')">eˣ</button>
+                            <button class="quick-btn" onclick="insertTextToActive('log()')">ln</button>
+                            <button class="quick-btn" onclick="insertTextToActive('abs()')">|x|</button>
+                            <button class="quick-btn" onclick="insertTextToActive('()')">()</button>
+                        </div>
+                        <div class="fraction-input">
+                            <div class="fraction-part">
+                                <label for="md-numerator" class="fraction-label">Numerador</label>
+                                <textarea id="md-numerator" placeholder="Ejemplo: D">D</textarea>
+                            </div>
+                            <div class="fraction-divider"></div>
+                            <div class="fraction-part">
+                                <label for="md-denominator" class="fraction-label">Denominador</label>
+                                <textarea id="md-denominator" placeholder="Ejemplo: (1-D) + Rl/(R-R*D)">(1-D) + Rl/(R-R*D)</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="expression-help">
+                        <small>Variables disponibles: D, Rl, R<br>
+                        Funciones: sin, cos, tan, log, exp, sqrt, pow, abs<br>
+                        Operadores: +, -, *, /, ^, (, )</small>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <input type="checkbox" id="use-custom-efficiency" onchange="toggleEfficiencyExpression()">
+                    <label for="use-custom-efficiency" style="display: inline; margin-left: 8px;">Usar expresión personalizada para eficiencia</label>
+                </div>
+
+                <div class="control-group" id="efficiency-expression-group" style="display: none;">
+                    <label for="efficiency-expression">Expresión de n (Eficiencia)</label>
+                    <textarea id="efficiency-expression" placeholder="Escribe tu expresión para eficiencia&#10;Ejemplo: (1-D) / ((1-D) + Rl/(R-R*D))">(1-D) / ((1-D) + Rl/(R-R*D))</textarea>
+                </div>
+
+                <button class="calculate-btn" onclick="calculateAndPlot()">
+                    Calcular y Graficar
+                </button>
+
+                <div class="formula-display" id="formula-display">
+                    <strong>Fórmulas Actuales:</strong><br>
+                    <span id="current-md-formula">Md = D / ((1-D) + Rl/(R-R*D))</span><br>
+                    <span id="current-efficiency-formula">n = (1-D) / ((1-D) + Rl/(R-R*D))</span>
+                </div>
+
+                <div class="results-section">
+                    <h3>Puntos Críticos</h3>
+                    <div id="critical-points-results">
+                        <div class="loading">Calculando...</div>
+                    </div>
+                </div>
+
+                <div class="results-section" id="debug-section" style="display: none;">
+                    <h3>Información de Depuración</h3>
+                    <div id="debug-info" style="font-family: 'Courier New', monospace; font-size: 0.85rem; background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                    </div>
+                </div>
+
+                <div class="error" id="error-message"></div>
+            </div>
+
+            <div class="charts-container">
+                <div class="loading" id="charts-loading">Generando gráficas...</div>
+                
+                <div class="charts-grid" id="charts-grid" style="display: none;">
+                    <div class="chart-wrapper">
+                        <h3>Factor de Transformación (Md) vs Duty Cycle (D)</h3>
+                        <div class="chart-container">
+                            <canvas id="md-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-wrapper">
+                        <h3>Eficiencia (n) vs Duty Cycle (D)</h3>
+                        <div class="chart-container">
+                            <canvas id="efficiency-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-wrapper combined-chart">
+                        <h3>Comparación: Md y Eficiencia vs Duty Cycle</h3>
+                        <div class="chart-container">
+                            <canvas id="combined-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let mdChart, efficiencyChart, combinedChart;
+
+        // Función para evaluar expresiones matemáticas personalizadas
+        function evaluateExpression(expression, D, Rl, R) {
+            try {
+                // Reemplazar variables en la expresión
+                let expr = expression
+                    .replace(/\bD\b/g, D.toString())
+                    .replace(/\bRl\b/g, Rl.toString())
+                    .replace(/\bR\b/g, R.toString())
+                    .replace(/\^/g, '**'); // Convertir ^ a ** para JavaScript
+
+                // Usar math.js para evaluar la expresión de forma segura
+                const result = math.evaluate(expr);
+                
+                // Verificar si el resultado es válido
+                if (isNaN(result) || !isFinite(result)) {
+                    return null;
+                }
+                
+                return result;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        // Función para calcular Md usando el modo seleccionado
+        function calculateMd(D, Rl, R) {
+            const isFractionMode = document.getElementById('fraction-mode-switch').checked;
+            
+            if (isFractionMode) {
+                // Modo fracción: numerador/denominador
+                const numerator = document.getElementById('md-numerator').value.trim();
+                const denominator = document.getElementById('md-denominator').value.trim();
+                
+                if (!numerator || !denominator) return null;
+                
+                const numValue = evaluateExpression(numerator, D, Rl, R);
+                const denValue = evaluateExpression(denominator, D, Rl, R);
+                
+                if (numValue === null || denValue === null || denValue === 0) return null;
+                
+                return numValue / denValue;
+            } else {
+                // Modo simple: expresión completa
+                const expression = document.getElementById('md-simple').value.trim();
+                if (!expression) return null;
+                
+                return evaluateExpression(expression, D, Rl, R);
+            }
+        }
+
+        // Función para calcular eficiencia
+        function calculateEfficiency(D, Rl, R) {
+            const useCustom = document.getElementById('use-custom-efficiency').checked;
+            
+            if (useCustom) {
+                const expression = document.getElementById('efficiency-expression').value.trim();
+                if (!expression) return null;
+                return evaluateExpression(expression, D, Rl, R);
+            } else {
+                // Fórmula por defecto
+                if (D >= 1 || R * D >= R) return null;
+                const denominator = (1 - D) + (Rl / (R - R * D));
+                return (1 - D) / denominator;
+            }
+        }
+
+        // Función para validar sintaxis de expresión
+        function validateExpression(expression) {
+            if (!expression.trim()) return false;
+            
+            try {
+                // Probar con valores de prueba
+                const testResult = evaluateExpression(expression, 0.5, 0.38, 5);
+                return testResult !== null;
+            } catch (error) {
+                return false;
+            }
+        }
+
+        // Función para validar la expresión completa de Md según el modo
+        function validateMdExpression() {
+            const isFractionMode = document.getElementById('fraction-mode-switch').checked;
+            
+            if (isFractionMode) {
+                // Modo fracción: validar numerador y denominador
+                const numerator = document.getElementById('md-numerator').value.trim();
+                const denominator = document.getElementById('md-denominator').value.trim();
+                
+                if (!numerator || !denominator) return false;
+                
+                return validateExpression(numerator) && validateExpression(denominator);
+            } else {
+                // Modo simple: validar expresión completa
+                const expression = document.getElementById('md-simple').value.trim();
+                return validateExpression(expression);
+            }
+        }
+
+        // Función para alternar entre modo simple y fracción
+        function toggleFractionMode() {
+            const isFractionMode = document.getElementById('fraction-mode-switch').checked;
+            const simpleMode = document.getElementById('simple-mode');
+            const fractionMode = document.getElementById('fraction-mode');
+            const simpleLabel = document.getElementById('simple-label');
+            const fractionLabel = document.getElementById('fraction-label');
+            
+            if (isFractionMode) {
+                // Activar modo fracción
+                simpleMode.classList.remove('active');
+                fractionMode.classList.remove('hidden');
+                simpleLabel.classList.remove('active');
+                fractionLabel.classList.add('active');
+            } else {
+                // Activar modo simple
+                simpleMode.classList.add('active');
+                fractionMode.classList.add('hidden');
+                simpleLabel.classList.add('active');
+                fractionLabel.classList.remove('active');
+            }
+            
+            // Actualizar visualización de fórmulas y recalcular
+            updateFormulaDisplay();
+            setTimeout(calculateAndPlot, 500);
+        }
+
+        // Función para alternar la expresión de eficiencia personalizada
+        function toggleEfficiencyExpression() {
+            const checkbox = document.getElementById('use-custom-efficiency');
+            const group = document.getElementById('efficiency-expression-group');
+            
+            if (checkbox.checked) {
+                group.style.display = 'block';
+            } else {
+                group.style.display = 'none';
+            }
+            
+            // Recalcular automáticamente
+            setTimeout(calculateAndPlot, 500);
+        }
+
+        // Función para actualizar la visualización de fórmulas
+        function updateFormulaDisplay() {
+            const isFractionMode = document.getElementById('fraction-mode-switch').checked;
+            const useCustomEfficiency = document.getElementById('use-custom-efficiency').checked;
+            const efficiencyExpression = document.getElementById('efficiency-expression').value.trim();
+            
+            if (isFractionMode) {
+                // Modo fracción
+                const numerator = document.getElementById('md-numerator').value.trim();
+                const denominator = document.getElementById('md-denominator').value.trim();
+                
+                if (numerator && denominator) {
+                    document.getElementById('current-md-formula').textContent = `Md = (${numerator}) / (${denominator})`;
+                } else {
+                    document.getElementById('current-md-formula').textContent = `Md = [Incompleto]`;
+                }
+            } else {
+                // Modo simple
+                const expression = document.getElementById('md-simple').value.trim();
+                
+                if (expression) {
+                    document.getElementById('current-md-formula').textContent = `Md = ${expression}`;
+                } else {
+                    document.getElementById('current-md-formula').textContent = `Md = [Incompleto]`;
+                }
+            }
+            
+            if (useCustomEfficiency && efficiencyExpression) {
+                document.getElementById('current-efficiency-formula').textContent = `n = ${efficiencyExpression}`;
+            } else {
+                document.getElementById('current-efficiency-formula').textContent = `n = (1-D) / ((1-D) + Rl/(R-R*D))`;
+            }
+        }
+
+        // Función para calcular puntos críticos analíticamente para la expresión por defecto
+        function calculateAnalyticalCriticalPoints(Rl, R) {
+            // Para la expresión Md = D / ((1-D) + Rl/(R-R*D))
+            // La derivada correcta (calculada simbólicamente) es compleja
+            // Vamos a usar la fórmula exacta que produce MATLAB
+            
+            // Según el análisis de la derivada simbólica de MATLAB, los puntos críticos son:
+            // D = (R ± √(R² - R*Rl)) / R
+            
+            const discriminant = R * R - R * Rl;
+            
+            const criticalPoints = [];
+            const allPoints = [];
+            
+            if (discriminant >= 0) {
+                const sqrtDiscriminant = Math.sqrt(discriminant);
+                const D1 = (R + sqrtDiscriminant) / R;
+                const D2 = (R - sqrtDiscriminant) / R;
+                
+                // Calcular Md para ambos puntos
+                const calculateMdDirect = (D) => {
+                    if (Math.abs(R * D - R) < 1e-10) return null; // Evitar división por cero
+                    return D / ((1 - D) + Rl / (R - R * D));
+                };
+                
+                // Procesar D1
+                const md1 = calculateMdDirect(D1);
+                if (md1 !== null && !isNaN(md1) && isFinite(md1)) {
+                    const inRange1 = D1 > 0 && D1 < 1;
+                    allPoints.push({
+                        D: D1,
+                        Md: md1,
+                        efficiency: null,
+                        type: 'D1 (Raíz positiva)',
+                        inRange: inRange1
+                    });
+                    
+                    if (inRange1) {
+                        const eff1 = calculateEfficiency(D1, Rl, R);
+                        criticalPoints.push({
+                            D: D1,
+                            Md: md1,
+                            efficiency: eff1,
+                            type: 'D1 (Raíz positiva)'
+                        });
+                    }
+                }
+                
+                // Procesar D2
+                const md2 = calculateMdDirect(D2);
+                if (md2 !== null && !isNaN(md2) && isFinite(md2)) {
+                    const inRange2 = D2 > 0 && D2 < 1;
+                    allPoints.push({
+                        D: D2,
+                        Md: md2,
+                        efficiency: null,
+                        type: 'D2 (Raíz negativa)',
+                        inRange: inRange2
+                    });
+                    
+                    if (inRange2) {
+                        const eff2 = calculateEfficiency(D2, Rl, R);
+                        criticalPoints.push({
+                            D: D2,
+                            Md: md2,
+                            efficiency: eff2,
+                            type: 'D2 (Raíz negativa)'
+                        });
+                    }
+                }
+            }
+            
+            // Si no encontramos puntos válidos, usar método numérico como respaldo
+            if (allPoints.length === 0) {
+                return findCriticalPointsNumerical(Rl, R);
+            }
+            
+            return { validPoints: criticalPoints, allPoints: allPoints };
+        }
+
+        // Función para encontrar puntos críticos usando aproximación numérica (para expresiones personalizadas)
+        function findCriticalPointsNumerical(Rl, R) {
+            const criticalPoints = [];
+            const step = 0.001;
+            let prevDerivative = null;
+
+            for (let D = step; D < 0.99; D += step) {
+                // Calcular derivada numérica
+                const h = 0.0001;
+                const md1 = calculateMd(D - h, Rl, R);
+                const md2 = calculateMd(D + h, Rl, R);
+                
+                if (md1 === null || md2 === null) continue;
+                
+                const derivative = (md2 - md1) / (2 * h);
+                
+                // Buscar cambios de signo en la derivada
+                if (prevDerivative !== null && 
+                    Math.sign(prevDerivative) !== Math.sign(derivative) &&
+                    Math.abs(derivative) < 10) { // Filtrar puntos con derivadas muy grandes
+                    
+                    const md = calculateMd(D, Rl, R);
+                    const eff = calculateEfficiency(D, Rl, R);
+                    
+                    if (md !== null && eff !== null) {
+                        criticalPoints.push({
+                            D: D,
+                            Md: md,
+                            efficiency: eff,
+                            type: `Punto crítico numérico`
+                        });
+                    }
+                }
+                
+                prevDerivative = derivative;
+            }
+
+            return { validPoints: criticalPoints, allPoints: criticalPoints };
+        }
+
+        // Función principal para encontrar puntos críticos
+        function findCriticalPoints(Rl, R) {
+            const isFractionMode = document.getElementById('fraction-mode-switch').checked;
+            
+            if (isFractionMode) {
+                // Modo fracción: verificar si es la expresión por defecto
+                const numerator = document.getElementById('md-numerator').value.trim();
+                const denominator = document.getElementById('md-denominator').value.trim();
+                
+                if (numerator === "D" && denominator === "(1-D) + Rl/(R-R*D)") {
+                    return calculateAnalyticalCriticalPoints(Rl, R);
+                } else {
+                    return findCriticalPointsNumerical(Rl, R);
+                }
+            } else {
+                // Modo simple: verificar si es la expresión por defecto
+                const expression = document.getElementById('md-simple').value.trim();
+                
+                if (expression === "D / ((1-D) + Rl/(R-R*D))") {
+                    return calculateAnalyticalCriticalPoints(Rl, R);
+                } else {
+                    return findCriticalPointsNumerical(Rl, R);
+                }
+            }
+        }
+
+        // Función principal de cálculo y graficación
+        function calculateAndPlot() {
+            try {
+                // Mostrar loading
+                document.getElementById('charts-loading').classList.add('show');
+                document.getElementById('charts-grid').style.display = 'none';
+                document.getElementById('error-message').classList.remove('show');
+
+                // Obtener valores de entrada
+                const Rl = parseFloat(document.getElementById('rl-input').value);
+                const R = parseFloat(document.getElementById('r-input').value);
+                const isFractionMode = document.getElementById('fraction-mode-switch').checked;
+
+                if (Rl <= 0 || R <= 0) {
+                    throw new Error('Los valores de resistencia deben ser positivos');
+                }
+
+                if (isFractionMode) {
+                    const numerator = document.getElementById('md-numerator').value.trim();
+                    const denominator = document.getElementById('md-denominator').value.trim();
+                    
+                    if (!numerator || !denominator) {
+                        throw new Error('Debes escribir tanto el numerador como el denominador para Md');
+                    }
+                } else {
+                    const expression = document.getElementById('md-simple').value.trim();
+                    
+                    if (!expression) {
+                        throw new Error('Debes escribir una expresión para Md');
+                    }
+                }
+
+                // Validar expresión de Md
+                if (!validateMdExpression()) {
+                    throw new Error('La expresión de Md contiene errores de sintaxis');
+                }
+
+                // Validar expresión de eficiencia si está habilitada
+                const useCustomEfficiency = document.getElementById('use-custom-efficiency').checked;
+                if (useCustomEfficiency) {
+                    const efficiencyExpression = document.getElementById('efficiency-expression').value.trim();
+                    if (!efficiencyExpression) {
+                        throw new Error('Debes escribir una expresión para la eficiencia');
+                    }
+                    if (!validateExpression(efficiencyExpression)) {
+                        throw new Error('La expresión de eficiencia contiene errores de sintaxis');
+                    }
+                }
+
+                // Actualizar visualización de fórmulas
+                updateFormulaDisplay();
+
+                // Generar datos para las gráficas
+                const DValues = [];
+                const MdValues = [];
+                const efficiencyValues = [];
+
+                for (let D = 0.01; D <= 0.99; D += 0.01) {
+                    const md = calculateMd(D, Rl, R);
+                    const eff = calculateEfficiency(D, Rl, R);
+                    
+                    if (md !== null && eff !== null && !isNaN(md) && !isNaN(eff)) {
+                        DValues.push(D);
+                        MdValues.push(md);
+                        efficiencyValues.push(eff);
+                    }
+                }
+
+                // Encontrar puntos críticos
+                const criticalPointsResult = findCriticalPoints(Rl, R);
+                const criticalPoints = criticalPointsResult.validPoints || criticalPointsResult;
+                const allCriticalPoints = criticalPointsResult.allPoints || criticalPointsResult;
+
+                // Actualizar resultados
+                updateCriticalPointsDisplay(criticalPoints, allCriticalPoints);
+                
+                // Mostrar información de depuración
+                updateDebugInfo(Rl, R, criticalPointsResult);
+
+                // Crear gráficas
+                setTimeout(() => {
+                    createCharts(DValues, MdValues, efficiencyValues, criticalPoints);
+                    document.getElementById('charts-loading').classList.remove('show');
+                    document.getElementById('charts-grid').style.display = 'grid';
+                }, 500);
+
+            } catch (error) {
+                document.getElementById('error-message').textContent = error.message;
+                document.getElementById('error-message').classList.add('show');
+                document.getElementById('charts-loading').classList.remove('show');
+            }
+        }
+
+        // Función para actualizar la visualización de puntos críticos
+        function updateCriticalPointsDisplay(criticalPoints, allCriticalPoints = null) {
+            const container = document.getElementById('critical-points-results');
+            
+            let html = '';
+            
+            // Mostrar todos los puntos críticos (incluyendo los fuera del rango)
+            if (allCriticalPoints && allCriticalPoints.length > 0) {
+                html += '<div style="margin-bottom: 15px;"><strong>Resultados Analíticos (como MATLAB):</strong></div>';
+                
+                allCriticalPoints.forEach((point, index) => {
+                    const statusColor = point.inRange ? '#27ae60' : '#e74c3c';
+                    const statusText = point.inRange ? 'Válido (0 < D < 1)' : 'Fuera de rango físico';
+                    
+                    html += `
+                        <div class="critical-points" style="background: linear-gradient(135deg, ${statusColor} 0%, ${statusColor}dd 100%);">
+                            <h4>${point.type}</h4>
+                            <div class="point">D = ${point.D.toFixed(6)}</div>
+                            <div class="point">Md = ${point.Md.toFixed(6)}</div>
+                            <div class="point" style="font-size: 0.85em; opacity: 0.9;">${statusText}</div>
+                        </div>
+                    `;
+                });
+                
+                // Separador
+                if (criticalPoints.length > 0) {
+                    html += '<div style="margin: 20px 0; border-top: 1px solid #ddd; padding-top: 15px;"><strong>Puntos Válidos para Gráficas:</strong></div>';
+                }
+            }
+            
+            // Mostrar puntos críticos válidos
+            if (criticalPoints.length === 0) {
+                if (!allCriticalPoints || allCriticalPoints.length === 0) {
+                    html += '<div class="point">No se encontraron puntos críticos</div>';
+                }
+            } else {
+                criticalPoints.forEach((point, index) => {
+                    html += `
+                        <div class="critical-points">
+                            <h4>${point.type || `Punto Crítico ${index + 1}`}</h4>
+                            <div class="point">D = ${point.D.toFixed(6)}</div>
+                            <div class="point">Md = ${point.Md.toFixed(6)}</div>
+                            ${point.efficiency !== null ? `<div class="point">Eficiencia = ${point.efficiency.toFixed(6)}</div>` : ''}
+                        </div>
+                    `;
+                });
+            }
+            
+            container.innerHTML = html;
+        }
+
+        // Función para mostrar información de depuración
+        function updateDebugInfo(Rl, R, criticalPointsResult) {
+            const debugContainer = document.getElementById('debug-info');
+            const debugSection = document.getElementById('debug-section');
+            
+            // Mostrar la sección de depuración
+            debugSection.style.display = 'block';
+            
+            let debugHtml = `<strong>Parámetros de entrada:</strong><br>`;
+            debugHtml += `Rl = ${Rl}<br>`;
+            debugHtml += `R = ${R}<br><br>`;
+            
+            // Calcular usando la fórmula simplificada
+            const discriminant = R * R - R * Rl;
+            
+            debugHtml += `<strong>Fórmula simplificada D = (R ± √(R² - R*Rl)) / R:</strong><br>`;
+            debugHtml += `Discriminante = R² - R*Rl = ${R}² - ${R}*${Rl} = ${discriminant.toFixed(6)}<br><br>`;
+            
+            if (discriminant >= 0) {
+                const sqrtDiscriminant = Math.sqrt(discriminant);
+                const D1 = (R + sqrtDiscriminant) / R;
+                const D2 = (R - sqrtDiscriminant) / R;
+                
+                debugHtml += `<strong>Raíces calculadas:</strong><br>`;
+                debugHtml += `D1 = (R + √discriminante) / R = ${D1.toFixed(6)}<br>`;
+                debugHtml += `D2 = (R - √discriminante) / R = ${D2.toFixed(6)}<br><br>`;
+                
+                // Calcular Md para verificación
+                const calculateMdDirect = (D) => {
+                    if (Math.abs(R * D - R) < 1e-10) return null;
+                    return D / ((1 - D) + Rl / (R - R * D));
+                };
+                
+                const md1 = calculateMdDirect(D1);
+                const md2 = calculateMdDirect(D2);
+                
+                debugHtml += `<strong>Valores de Md:</strong><br>`;
+                debugHtml += `Md(D1) = ${md1 !== null ? md1.toFixed(6) : 'indefinido'}<br>`;
+                debugHtml += `Md(D2) = ${md2 !== null ? md2.toFixed(6) : 'indefinido'}<br><br>`;
+                
+                debugHtml += `<strong>Comparación con MATLAB:</strong><br>`;
+                debugHtml += `MATLAB D1: 1.361965, Calculado D1: ${D1.toFixed(6)}<br>`;
+                debugHtml += `MATLAB D2: 0.790035, Calculado D2: ${D2.toFixed(6)}<br>`;
+                debugHtml += `MATLAB Md1: -2.381349, Calculado Md1: ${md1 !== null ? md1.toFixed(6) : 'indefinido'}<br>`;
+                debugHtml += `MATLAB Md2: 1.381349, Calculado Md2: ${md2 !== null ? md2.toFixed(6) : 'indefinido'}<br>`;
+            } else {
+                debugHtml += `<strong>No hay raíces reales (discriminante < 0)</strong><br>`;
+            }
+            
+            debugContainer.innerHTML = debugHtml;
+        }
+
+        // Función para crear las gráficas
+        function createCharts(DValues, MdValues, efficiencyValues, criticalPoints) {
+            // Destruir gráficas existentes
+            if (mdChart) mdChart.destroy();
+            if (efficiencyChart) efficiencyChart.destroy();
+            if (combinedChart) combinedChart.destroy();
+
+            // Configuración común
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Duty Cycle (D)'
+                        },
+                        grid: {
+                            display: true,
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            display: true,
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    }
+                }
+            };
+
+            // Gráfica de Md
+            const mdCtx = document.getElementById('md-chart').getContext('2d');
+            mdChart = new Chart(mdCtx, {
+                type: 'line',
+                data: {
+                    labels: DValues.map(d => d.toFixed(2)),
+                    datasets: [{
+                        label: 'Md (Factor de Transformación)',
+                        data: MdValues,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Puntos Críticos',
+                        data: criticalPoints.map(p => ({
+                            x: (p.D * 100).toFixed(0),
+                            y: p.Md
+                        })),
+                        backgroundColor: '#e74c3c',
+                        borderColor: '#e74c3c',
+                        type: 'scatter',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: {
+                            ...commonOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'Md (Factor de Transformación)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gráfica de Eficiencia
+            const effCtx = document.getElementById('efficiency-chart').getContext('2d');
+            efficiencyChart = new Chart(effCtx, {
+                type: 'line',
+                data: {
+                    labels: DValues.map(d => d.toFixed(2)),
+                    datasets: [{
+                        label: 'n (Eficiencia)',
+                        data: efficiencyValues,
+                        borderColor: '#27ae60',
+                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: 'Puntos Críticos',
+                        data: criticalPoints.map(p => ({
+                            x: (p.D * 100).toFixed(0),
+                            y: p.efficiency
+                        })),
+                        backgroundColor: '#e74c3c',
+                        borderColor: '#e74c3c',
+                        type: 'scatter',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        ...commonOptions.scales,
+                        y: {
+                            ...commonOptions.scales.y,
+                            title: {
+                                display: true,
+                                text: 'n (Eficiencia)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gráfica combinada
+            const combinedCtx = document.getElementById('combined-chart').getContext('2d');
+            combinedChart = new Chart(combinedCtx, {
+                type: 'line',
+                data: {
+                    labels: DValues.map(d => d.toFixed(2)),
+                    datasets: [{
+                        label: 'Md (Factor de Transformación)',
+                        data: MdValues,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        yAxisID: 'y',
+                        tension: 0.4
+                    }, {
+                        label: 'n (Eficiencia)',
+                        data: efficiencyValues,
+                        borderColor: '#27ae60',
+                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                        borderWidth: 2,
+                        yAxisID: 'y1',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Duty Cycle (D)'
+                            },
+                            grid: {
+                                display: true,
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Md (Factor de Transformación)',
+                                color: '#3498db'
+                            },
+                            ticks: {
+                                color: '#3498db'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'n (Eficiencia)',
+                                color: '#27ae60'
+                            },
+                            ticks: {
+                                color: '#27ae60'
+                            },
+                            grid: {
+                                drawOnChartArea: true,
+                                color: 'rgba(0,0,0,0.1)'
+                            },
+                        },
+                    }
+                }
+            });
+        }
+
+        // Función para validar expresión en tiempo real
+        function validateExpressionRealTime(textareaId) {
+            const textarea = document.getElementById(textareaId);
+            const expression = textarea.value.trim();
+            
+            if (!expression) {
+                textarea.classList.remove('syntax-error', 'syntax-valid');
+                return;
+            }
+            
+            if (validateExpression(expression)) {
+                textarea.classList.remove('syntax-error');
+                textarea.classList.add('syntax-valid');
+            } else {
+                textarea.classList.remove('syntax-valid');
+                textarea.classList.add('syntax-error');
+            }
+        }
+
+        // Función para validar ambos campos de Md en tiempo real
+        function validateMdRealTime() {
+            validateExpressionRealTime('md-numerator');
+            validateExpressionRealTime('md-denominator');
+        }
+
+        // Función para insertar texto en un campo específico
+        function insertText(fieldId, text) {
+            const field = document.getElementById(fieldId);
+            const start = field.selectionStart;
+            const end = field.selectionEnd;
+            const currentValue = field.value;
+            
+            // Insertar el texto en la posición del cursor
+            const newValue = currentValue.substring(0, start) + text + currentValue.substring(end);
+            field.value = newValue;
+            
+            // Posicionar el cursor
+            let newCursorPos = start + text.length;
+            if (text.includes('()')) {
+                newCursorPos = start + text.indexOf('(') + 1;
+            }
+            
+            field.focus();
+            field.setSelectionRange(newCursorPos, newCursorPos);
+            
+            // Validar y actualizar
+            if (fieldId === 'md-simple') {
+                validateExpressionRealTime(fieldId);
+            } else {
+                validateMdRealTime();
+            }
+            updateFormulaDisplay();
+            
+            // Recalcular después de un breve delay
+            setTimeout(calculateAndPlot, 1000);
+        }
+
+        // Función para insertar texto en el campo activo (para modo fracción)
+        function insertTextToActive(text) {
+            const activeElement = document.activeElement;
+            
+            // Determinar qué campo usar
+            let targetField = 'md-numerator'; // Por defecto numerador
+            
+            if (activeElement && (activeElement.id === 'md-numerator' || activeElement.id === 'md-denominator')) {
+                targetField = activeElement.id;
+            }
+            
+            insertText(targetField, text);
+        }
+
+        // Calcular automáticamente al cargar la página
+        window.addEventListener('load', function() {
+            // Inicializar en modo simple por defecto
+            document.getElementById('simple-mode').classList.add('active');
+            document.getElementById('fraction-mode').classList.add('hidden');
+            document.getElementById('simple-label').classList.add('active');
+            document.getElementById('fraction-label').classList.remove('active');
+            
+            updateFormulaDisplay();
+            setTimeout(calculateAndPlot, 1000);
+        });
+
+        // Recalcular cuando cambien los valores
+        document.getElementById('rl-input').addEventListener('input', function() {
+            clearTimeout(this.timeout);
+            this.timeout = setTimeout(calculateAndPlot, 1000);
+        });
+
+        document.getElementById('r-input').addEventListener('input', function() {
+            clearTimeout(this.timeout);
+            this.timeout = setTimeout(calculateAndPlot, 1000);
+        });
+
+        // Validar y recalcular cuando cambien las expresiones de Md
+        document.getElementById('md-simple').addEventListener('input', function() {
+            validateExpressionRealTime('md-simple');
+            updateFormulaDisplay();
+            clearTimeout(this.timeout);
+            this.timeout = setTimeout(calculateAndPlot, 1500);
+        });
+
+        document.getElementById('md-numerator').addEventListener('input', function() {
+            validateMdRealTime();
+            updateFormulaDisplay();
+            clearTimeout(this.timeout);
+            this.timeout = setTimeout(calculateAndPlot, 1500);
+        });
+
+        document.getElementById('md-denominator').addEventListener('input', function() {
+            validateMdRealTime();
+            updateFormulaDisplay();
+            clearTimeout(this.timeout);
+            this.timeout = setTimeout(calculateAndPlot, 1500);
+        });
+
+        document.getElementById('efficiency-expression').addEventListener('input', function() {
+            validateExpressionRealTime('efficiency-expression');
+            updateFormulaDisplay();
+            clearTimeout(this.timeout);
+            this.timeout = setTimeout(calculateAndPlot, 1500);
+        });
+    </script>
+</body>
+</html>
