@@ -198,6 +198,53 @@
             width: 100%;
         }
 
+        .debug-wrapper {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid #3498db;
+        }
+
+        .debug-wrapper h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .debug-content {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .debug-content strong {
+            color: #2980b9;
+            font-weight: 600;
+            display: block;
+            margin: 15px 0 8px 0;
+            font-size: 1.05rem;
+        }
+
+        .debug-content strong:first-child {
+            margin-top: 0;
+        }
+
+        .debug-content br + strong {
+            margin-top: 20px;
+        }
+
         .loading {
             display: none;
             text-align: center;
@@ -923,11 +970,6 @@
                     </div>
                 </div>
 
-                <div class="results-section" id="debug-section" style="display: none;">
-                    <h3>Información de Depuración</h3>
-                    <div id="debug-info" style="font-family: 'Courier New', monospace; font-size: 0.85rem; background: #f8f9fa; padding: 10px; border-radius: 5px;">
-                    </div>
-                </div>
 
                 <div class="error" id="error-message"></div>
             </div>
@@ -936,6 +978,14 @@
                 <div class="loading" id="charts-loading">Generando gráficas...</div>
                 
                 <div class="charts-grid" id="charts-grid" style="display: none;">
+                    <!-- Información de Depuración -->
+                    <div class="debug-wrapper" id="debug-section" style="display: none;">
+                        <h3>📊 Análisis Matemático Detallado</h3>
+                        <div class="debug-content" id="debug-info">
+                            <div class="loading">Calculando análisis...</div>
+                        </div>
+                    </div>
+
                     <div class="chart-wrapper full-width">
                         <h3>Factor de Transformación (Md) vs Duty Cycle (D)</h3>
                         <div class="chart-container">
@@ -1610,15 +1660,17 @@
                 const md1 = calculateMdDirect(D1);
                 const md2 = calculateMdDirect(D2);
                 
-                debugHtml += `<strong>Valores de Md:</strong><br>`;
-                debugHtml += `Md(D1) = ${md1 !== null ? md1.toFixed(6) : 'indefinido'}<br>`;
-                debugHtml += `Md(D2) = ${md2 !== null ? md2.toFixed(6) : 'indefinido'}<br><br>`;
+                debugHtml += `<strong>Puntos críticos encontrados:</strong><br>`;
+                debugHtml += `D1 = ${D1.toFixed(6)} → Md1 = ${md1 !== null ? md1.toFixed(6) : 'indefinido'}<br>`;
+                debugHtml += `D2 = ${D2.toFixed(6)} → Md2 = ${md2 !== null ? md2.toFixed(6) : 'indefinido'}<br><br>`;
                 
-                debugHtml += `<strong>Comparación con MATLAB:</strong><br>`;
-                debugHtml += `MATLAB D1: 1.361965, Calculado D1: ${D1.toFixed(6)}<br>`;
-                debugHtml += `MATLAB D2: 0.790035, Calculado D2: ${D2.toFixed(6)}<br>`;
-                debugHtml += `MATLAB Md1: -2.381349, Calculado Md1: ${md1 !== null ? md1.toFixed(6) : 'indefinido'}<br>`;
-                debugHtml += `MATLAB Md2: 1.381349, Calculado Md2: ${md2 !== null ? md2.toFixed(6) : 'indefinido'}<br>`;
+                // Determinar qué puntos están en el rango válido
+                const d1Valid = D1 > 0 && D1 < 1;
+                const d2Valid = D2 > 0 && D2 < 1;
+                
+                debugHtml += `<strong>Validez de los puntos:</strong><br>`;
+                debugHtml += `D1 (${D1.toFixed(6)}): ${d1Valid ? '✓ Válido (0 < D < 1)' : '✗ Fuera de rango físico'}<br>`;
+                debugHtml += `D2 (${D2.toFixed(6)}): ${d2Valid ? '✓ Válido (0 < D < 1)' : '✗ Fuera de rango físico'}<br>`;
             } else {
                 debugHtml += `<strong>No hay raíces reales (discriminante < 0)</strong><br>`;
             }
