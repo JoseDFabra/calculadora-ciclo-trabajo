@@ -17,12 +17,13 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 20px 20px 0 20px;
+            margin: 0;
         }
 
         .container {
             max-width: 1400px;
-            margin: 0 auto;
+            margin: 0 auto 0 auto;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
@@ -622,11 +623,11 @@
         .footer {
             background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             color: white;
-            padding: 30px 20px;
-            margin-top: 40px;
+            padding: 30px 20px 20px 20px;
+            margin: 30px 0 0 0;
             text-align: center;
-            border-radius: 20px 20px 0 0;
             box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 20px 20px 0 0;
         }
 
         .footer-content {
@@ -686,10 +687,20 @@
             margin: 0 auto;
         }
 
+        .institution {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #3498db;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
         @media (max-width: 768px) {
             .footer {
                 padding: 20px 15px;
-                margin-top: 30px;
+                margin: 20px 0 0 0;
+                border-radius: 15px 15px 0 0;
             }
             
             .footer-content {
@@ -702,6 +713,10 @@
             }
             
             .credits-info {
+                font-size: 0.9rem;
+            }
+            
+            .institution {
                 font-size: 0.9rem;
             }
         }
@@ -988,6 +1003,9 @@
                 </div>
                 <div class="credits-info">
                     Claudia Lucía Cortés Cortés - Código base de referencia
+                </div>
+                <div class="institution">
+                    ITM - Institución Universitaria
                 </div>
             </div>
         </div>
