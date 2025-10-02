@@ -582,6 +582,150 @@
             margin: 5px 0;
             font-family: 'Courier New', monospace;
         }
+
+        .section-container {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .section-container.md-section {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.05) 0%, rgba(255, 255, 255, 0.8) 100%);
+            border-left: 4px solid #3498db;
+        }
+
+        .section-container.efficiency-section {
+            background: linear-gradient(135deg, rgba(39, 174, 96, 0.05) 0%, rgba(255, 255, 255, 0.8) 100%);
+            border-left: 4px solid #27ae60;
+        }
+
+        .section-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .section-container.md-section .section-header {
+            color: #2980b9;
+        }
+
+        .section-container.efficiency-section .section-header {
+            color: #229954;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px 20px;
+            margin-top: 40px;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .footer-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .github-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .github-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .credits-info {
+            font-size: 1rem;
+            font-weight: 400;
+            opacity: 0.95;
+            line-height: 1.6;
+            margin-bottom: 5px;
+        }
+
+        .institution {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #3498db;
+            margin-top: 10px;
+        }
+
+        .divider {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #3498db, transparent);
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            .footer {
+                padding: 20px 15px;
+                margin-top: 30px;
+            }
+            
+            .footer-content {
+                gap: 15px;
+            }
+            
+            .github-link {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+            
+            .credits-info {
+                font-size: 0.9rem;
+            }
+        }
+
+        .efficiency-mode {
+            transition: all 0.3s ease;
+        }
+
+        .efficiency-mode.hidden {
+            display: none;
+        }
+
+        .md-mode {
+            transition: all 0.3s ease;
+        }
+
+        .md-mode.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -609,83 +753,169 @@
                     </div>
                 </div>
 
-                <div class="control-group">
-                    <label>Factor de Transformación (Md)</label>
+                <div class="section-container md-section">
+                    <div class="section-header">🔧 Factor de Transformación (Md)</div>
                     
-                    <div class="mode-switch">
-                        <div class="mode-switch-content">
-                            <button class="mode-option active" id="simple-mode-btn" onclick="setModeNew('simple')">
-                                📝 Expresión Simple
-                            </button>
-                            <button class="mode-option" id="fraction-mode-btn" onclick="setModeNew('fraction')">
-                                🔢 Fracción (Num/Den)
-                            </button>
-                        </div>
-                        <input type="checkbox" id="fraction-mode-switch" style="display: none;">
-                    </div>
-
-                    <!-- Modo Simple -->
-                    <div class="simple-input" id="simple-mode">
-                        <label for="md-simple">Expresión de Md</label>
-                        <div class="quick-actions-label">Acciones Rápidas:</div>
-                        <div class="quick-actions" id="simple-quick-actions">
-                            <button class="quick-btn" onclick="insertText('md-simple', 'sqrt()')">√</button>
-                            <button class="quick-btn" onclick="insertText('md-simple', '^2')">x²</button>
-                            <button class="quick-btn" onclick="insertText('md-simple', '^')">x^</button>
-                            <button class="quick-btn" onclick="insertText('md-simple', 'sin()')">sin</button>
-                            <button class="quick-btn" onclick="insertText('md-simple', 'cos()')">cos</button>
-                            <button class="quick-btn" onclick="insertText('md-simple', 'tan()')">tan</button>
-                            <button class="quick-btn" onclick="insertText('md-simple', 'exp()')">eˣ</button>
-                            <button class="quick-btn" onclick="insertText('md-simple', 'log()')">ln</button>
-                            <button class="quick-btn" onclick="insertText('md-simple', 'abs()')">|x|</button>
-                            <button class="quick-btn" onclick="insertText('md-simple', '()')">()</button>
-                        </div>
-                        <textarea id="md-simple" placeholder="Ejemplo: D / ((1-D) + Rl/(R-R*D))">D / ((1-D) + Rl/(R-R*D))</textarea>
-                    </div>
-
-                    <!-- Modo Fracción -->
-                    <div class="fraction-container" id="fraction-mode">
-                        <div class="quick-actions-label">Acciones Rápidas:</div>
-                        <div class="quick-actions" id="fraction-quick-actions">
-                            <button class="quick-btn" onclick="insertTextToActive('sqrt()')">√</button>
-                            <button class="quick-btn" onclick="insertTextToActive('^2')">x²</button>
-                            <button class="quick-btn" onclick="insertTextToActive('^')">x^</button>
-                            <button class="quick-btn" onclick="insertTextToActive('sin()')">sin</button>
-                            <button class="quick-btn" onclick="insertTextToActive('cos()')">cos</button>
-                            <button class="quick-btn" onclick="insertTextToActive('tan()')">tan</button>
-                            <button class="quick-btn" onclick="insertTextToActive('exp()')">eˣ</button>
-                            <button class="quick-btn" onclick="insertTextToActive('log()')">ln</button>
-                            <button class="quick-btn" onclick="insertTextToActive('abs()')">|x|</button>
-                            <button class="quick-btn" onclick="insertTextToActive('()')">()</button>
-                        </div>
-                        <div class="fraction-input">
-                            <div class="fraction-part">
-                                <label for="md-numerator" class="fraction-label">Numerador</label>
-                                <textarea id="md-numerator" placeholder="Ejemplo: D">D</textarea>
+                    <div class="control-group">
+                        <div class="mode-switch">
+                            <div class="mode-switch-content">
+                                <button class="mode-option active" id="simple-mode-btn" onclick="setModeNew('simple')">
+                                    📝 Expresión Simple
+                                </button>
+                                <button class="mode-option" id="fraction-mode-btn" onclick="setModeNew('fraction')">
+                                    🔢 Fracción (Num/Den)
+                                </button>
                             </div>
-                            <div class="fraction-divider"></div>
-                            <div class="fraction-part">
-                                <label for="md-denominator" class="fraction-label">Denominador</label>
-                                <textarea id="md-denominator" placeholder="Ejemplo: (1-D) + Rl/(R-R*D)">(1-D) + Rl/(R-R*D)</textarea>
+                            <input type="checkbox" id="fraction-mode-switch" style="display: none;">
+                        </div>
+
+                        <!-- Modo Simple para Factor de Transformación -->
+                        <div class="md-mode" id="simple-mode">
+                            <label for="md-simple">Expresión de Md</label>
+                            <div class="quick-actions-label">Acciones Rápidas:</div>
+                            <div class="quick-actions" id="simple-quick-actions">
+                                <button class="quick-btn" onclick="insertText('md-simple', 'sqrt()')">√</button>
+                                <button class="quick-btn" onclick="insertText('md-simple', '^2')">x²</button>
+                                <button class="quick-btn" onclick="insertText('md-simple', '^')">x^</button>
+                                <button class="quick-btn" onclick="insertText('md-simple', 'sin()')">sin</button>
+                                <button class="quick-btn" onclick="insertText('md-simple', 'cos()')">cos</button>
+                                <button class="quick-btn" onclick="insertText('md-simple', 'tan()')">tan</button>
+                                <button class="quick-btn" onclick="insertText('md-simple', 'exp()')">eˣ</button>
+                                <button class="quick-btn" onclick="insertText('md-simple', 'log()')">ln</button>
+                                <button class="quick-btn" onclick="insertText('md-simple', 'abs()')">|x|</button>
+                                <button class="quick-btn" onclick="insertText('md-simple', '()')">()</button>
+                            </div>
+                            <textarea id="md-simple" placeholder="Ejemplo: D / ((1-D) + Rl/(R-R*D))">D / ((1-D) + Rl/(R-R*D))</textarea>
+                        </div>
+
+                        <!-- Modo Fracción para Factor de Transformación -->
+                        <div class="md-mode fraction-container" id="fraction-mode" style="display: none;">
+                            <div class="quick-actions-label">Acciones Rápidas:</div>
+                            <div class="quick-actions" id="fraction-quick-actions">
+                                <button class="quick-btn" onclick="insertTextToActive('sqrt()')">√</button>
+                                <button class="quick-btn" onclick="insertTextToActive('^2')">x²</button>
+                                <button class="quick-btn" onclick="insertTextToActive('^')">x^</button>
+                                <button class="quick-btn" onclick="insertTextToActive('sin()')">sin</button>
+                                <button class="quick-btn" onclick="insertTextToActive('cos()')">cos</button>
+                                <button class="quick-btn" onclick="insertTextToActive('tan()')">tan</button>
+                                <button class="quick-btn" onclick="insertTextToActive('exp()')">eˣ</button>
+                                <button class="quick-btn" onclick="insertTextToActive('log()')">ln</button>
+                                <button class="quick-btn" onclick="insertTextToActive('abs()')">|x|</button>
+                                <button class="quick-btn" onclick="insertTextToActive('()')">()</button>
+                            </div>
+                            <div class="fraction-input">
+                                <div class="fraction-part">
+                                    <label for="md-numerator" class="fraction-label">Numerador</label>
+                                    <textarea id="md-numerator" placeholder="Ejemplo: D">D</textarea>
+                                </div>
+                                <div class="fraction-divider"></div>
+                                <div class="fraction-part">
+                                    <label for="md-denominator" class="fraction-label">Denominador</label>
+                                    <textarea id="md-denominator" placeholder="Ejemplo: (1-D) + Rl/(R-R*D)">(1-D) + Rl/(R-R*D)</textarea>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="expression-help">
-                        <small>Variables disponibles: D, Rl, R<br>
-                        Funciones: sin, cos, tan, log, exp, sqrt, pow, abs<br>
-                        Operadores: +, -, *, /, ^, (, )</small>
+                        <div class="expression-help">
+                            <small>Variables disponibles: D, Rl, R<br>
+                            Funciones: sin, cos, tan, log, exp, sqrt, pow, abs<br>
+                            Operadores: +, -, *, /, ^, (, )</small>
+                        </div>
                     </div>
                 </div>
 
-                <div class="control-group">
-                    <input type="checkbox" id="use-custom-efficiency" onchange="toggleEfficiencyExpression()">
-                    <label for="use-custom-efficiency" style="display: inline; margin-left: 8px;">Usar expresión personalizada para eficiencia</label>
-                </div>
+                <div class="section-container efficiency-section">
+                    <div class="section-header">⚡ Eficiencia (n)</div>
+                    
+                    <div class="control-group">
+                        <div class="mode-switch">
+                            <div class="mode-switch-content">
+                                <button class="mode-option active" id="efficiency-default-btn" onclick="setEfficiencyMode('default')">
+                                    🔧 Fórmula por Defecto
+                                </button>
+                                <button class="mode-option" id="efficiency-custom-btn" onclick="setEfficiencyMode('custom')">
+                                    ⚙️ Expresión Personalizada
+                                </button>
+                            </div>
+                            <input type="checkbox" id="use-custom-efficiency" style="display: none;">
+                        </div>
 
-                <div class="control-group" id="efficiency-expression-group" style="display: none;">
-                    <label for="efficiency-expression">Expresión de n (Eficiencia)</label>
-                    <textarea id="efficiency-expression" placeholder="Escribe tu expresión para eficiencia&#10;Ejemplo: (1-D) / ((1-D) + Rl/(R-R*D))">(1-D) / ((1-D) + Rl/(R-R*D))</textarea>
+                        <!-- Modo por defecto -->
+                        <div class="efficiency-mode" id="efficiency-default-mode">
+                            <div class="formula-display" style="margin: 15px 0;">
+                                <strong>Fórmula por defecto:</strong><br>
+                                n = (1-D) / ((1-D) + Rl/(R-R*D))
+                            </div>
+                        </div>
+
+                        <!-- Modo personalizado -->
+                        <div class="efficiency-mode" id="efficiency-custom-mode" style="display: none;">
+                            <div class="mode-switch" style="margin: 15px 0;">
+                                <div class="mode-switch-content">
+                                    <button class="mode-option active" id="efficiency-simple-mode-btn" onclick="setEfficiencyCustomMode('simple')">
+                                        📝 Expresión Simple
+                                    </button>
+                                    <button class="mode-option" id="efficiency-fraction-mode-btn" onclick="setEfficiencyCustomMode('fraction')">
+                                        🔢 Fracción (Num/Den)
+                                    </button>
+                                </div>
+                                <input type="checkbox" id="efficiency-fraction-mode-switch" style="display: none;">
+                            </div>
+
+                            <!-- Modo Simple para Eficiencia -->
+                            <div class="simple-input active" id="efficiency-simple-mode">
+                                <label for="efficiency-simple">Expresión de n</label>
+                                <div class="quick-actions-label">Acciones Rápidas:</div>
+                                <div class="quick-actions" id="efficiency-simple-quick-actions">
+                                    <button class="quick-btn" onclick="insertText('efficiency-simple', 'sqrt()')">√</button>
+                                    <button class="quick-btn" onclick="insertText('efficiency-simple', '^2')">x²</button>
+                                    <button class="quick-btn" onclick="insertText('efficiency-simple', '^')">x^</button>
+                                    <button class="quick-btn" onclick="insertText('efficiency-simple', 'sin()')">sin</button>
+                                    <button class="quick-btn" onclick="insertText('efficiency-simple', 'cos()')">cos</button>
+                                    <button class="quick-btn" onclick="insertText('efficiency-simple', 'tan()')">tan</button>
+                                    <button class="quick-btn" onclick="insertText('efficiency-simple', 'exp()')">eˣ</button>
+                                    <button class="quick-btn" onclick="insertText('efficiency-simple', 'log()')">ln</button>
+                                    <button class="quick-btn" onclick="insertText('efficiency-simple', 'abs()')">|x|</button>
+                                    <button class="quick-btn" onclick="insertText('efficiency-simple', '()')">()</button>
+                                </div>
+                                <textarea id="efficiency-simple" placeholder="Ejemplo: (1-D) / ((1-D) + Rl/(R-R*D))">(1-D) / ((1-D) + Rl/(R-R*D))</textarea>
+                            </div>
+
+                            <!-- Modo Fracción para Eficiencia -->
+                            <div class="fraction-container" id="efficiency-fraction-mode" style="display: none;">
+                                <div class="quick-actions-label">Acciones Rápidas:</div>
+                                <div class="quick-actions" id="efficiency-fraction-quick-actions">
+                                    <button class="quick-btn" onclick="insertTextToActiveEfficiency('sqrt()')">√</button>
+                                    <button class="quick-btn" onclick="insertTextToActiveEfficiency('^2')">x²</button>
+                                    <button class="quick-btn" onclick="insertTextToActiveEfficiency('^')">x^</button>
+                                    <button class="quick-btn" onclick="insertTextToActiveEfficiency('sin()')">sin</button>
+                                    <button class="quick-btn" onclick="insertTextToActiveEfficiency('cos()')">cos</button>
+                                    <button class="quick-btn" onclick="insertTextToActiveEfficiency('tan()')">tan</button>
+                                    <button class="quick-btn" onclick="insertTextToActiveEfficiency('exp()')">eˣ</button>
+                                    <button class="quick-btn" onclick="insertTextToActiveEfficiency('log()')">ln</button>
+                                    <button class="quick-btn" onclick="insertTextToActiveEfficiency('abs()')">|x|</button>
+                                    <button class="quick-btn" onclick="insertTextToActiveEfficiency('()')">()</button>
+                                </div>
+                                <div class="fraction-input">
+                                    <div class="fraction-part">
+                                        <label for="efficiency-numerator" class="fraction-label">Numerador</label>
+                                        <textarea id="efficiency-numerator" placeholder="Ejemplo: 1-D">1-D</textarea>
+                                    </div>
+                                    <div class="fraction-divider"></div>
+                                    <div class="fraction-part">
+                                        <label for="efficiency-denominator" class="fraction-label">Denominador</label>
+                                        <textarea id="efficiency-denominator" placeholder="Ejemplo: (1-D) + Rl/(R-R*D)">(1-D) + Rl/(R-R*D)</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="expression-help">
+                                <small>Variables disponibles: D, Rl, R<br>
+                                Funciones: sin, cos, tan, log, exp, sqrt, pow, abs<br>
+                                Operadores: +, -, *, /, ^, (, )</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <button class="calculate-btn" onclick="calculateAndPlot()">
@@ -742,6 +972,34 @@
             </div>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <a href="https://github.com/JoseDFabra/calculadora-ciclo-trabajo" target="_blank" rel="noopener noreferrer" class="github-link">
+                    <svg class="github-icon" viewBox="0 0 24 24">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    Ver en GitHub
+                </a>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="footer-section">
+                <div class="credits-info">
+                    Jose Daniel Fabra Tapias - Creación de lógica y desarrollo de interfaz
+                </div>
+                <div class="credits-info">
+                    Claudia Lucía Cortés Cortés - Código base de referencia
+                </div>
+                <div class="institution">
+                    Instituto Universitario ITM
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <script>
         let mdChart, efficiencyChart, combinedChart;
@@ -801,9 +1059,28 @@
             const useCustom = document.getElementById('use-custom-efficiency').checked;
             
             if (useCustom) {
-                const expression = document.getElementById('efficiency-expression').value.trim();
-                if (!expression) return null;
-                return evaluateExpression(expression, D, Rl, R);
+                const isFractionMode = document.getElementById('efficiency-fraction-mode-switch').checked;
+                
+                if (isFractionMode) {
+                    // Modo fracción: numerador/denominador
+                    const numerator = document.getElementById('efficiency-numerator').value.trim();
+                    const denominator = document.getElementById('efficiency-denominator').value.trim();
+                    
+                    if (!numerator || !denominator) return null;
+                    
+                    const numValue = evaluateExpression(numerator, D, Rl, R);
+                    const denValue = evaluateExpression(denominator, D, Rl, R);
+                    
+                    if (numValue === null || denValue === null || denValue === 0) return null;
+                    
+                    return numValue / denValue;
+                } else {
+                    // Modo simple: expresión completa
+                    const expression = document.getElementById('efficiency-simple').value.trim();
+                    if (!expression) return null;
+                    
+                    return evaluateExpression(expression, D, Rl, R);
+                }
             } else {
                 // Fórmula por defecto
                 if (D >= 1 || R * D >= R) return null;
@@ -879,27 +1156,76 @@
             setModeNew(isFractionMode ? 'fraction' : 'simple');
         }
 
-        // Función para alternar la expresión de eficiencia personalizada
-        function toggleEfficiencyExpression() {
+        // Función para cambiar el modo de eficiencia (por defecto vs personalizada)
+        function setEfficiencyMode(mode) {
+            const defaultBtn = document.getElementById('efficiency-default-btn');
+            const customBtn = document.getElementById('efficiency-custom-btn');
+            const defaultMode = document.getElementById('efficiency-default-mode');
+            const customMode = document.getElementById('efficiency-custom-mode');
             const checkbox = document.getElementById('use-custom-efficiency');
-            const group = document.getElementById('efficiency-expression-group');
             
-            if (checkbox.checked) {
-                group.style.display = 'block';
+            // Actualizar botones
+            defaultBtn.classList.remove('active');
+            customBtn.classList.remove('active');
+            
+            if (mode === 'default') {
+                defaultBtn.classList.add('active');
+                defaultMode.style.display = 'block';
+                customMode.style.display = 'none';
+                checkbox.checked = false;
             } else {
-                group.style.display = 'none';
+                customBtn.classList.add('active');
+                defaultMode.style.display = 'none';
+                customMode.style.display = 'block';
+                checkbox.checked = true;
             }
             
-            // Recalcular automáticamente
+            // Actualizar visualización de fórmulas y recalcular
+            updateFormulaDisplay();
             setTimeout(calculateAndPlot, 500);
+        }
+
+        // Función para cambiar el modo personalizado de eficiencia (simple vs fracción)
+        function setEfficiencyCustomMode(mode) {
+            const simpleBtn = document.getElementById('efficiency-simple-mode-btn');
+            const fractionBtn = document.getElementById('efficiency-fraction-mode-btn');
+            const simpleMode = document.getElementById('efficiency-simple-mode');
+            const fractionMode = document.getElementById('efficiency-fraction-mode');
+            const checkbox = document.getElementById('efficiency-fraction-mode-switch');
+            
+            // Actualizar botones
+            simpleBtn.classList.remove('active');
+            fractionBtn.classList.remove('active');
+            
+            if (mode === 'simple') {
+                simpleBtn.classList.add('active');
+                simpleMode.style.display = 'block';
+                fractionMode.style.display = 'none';
+                checkbox.checked = false;
+            } else {
+                fractionBtn.classList.add('active');
+                simpleMode.style.display = 'none';
+                fractionMode.style.display = 'block';
+                checkbox.checked = true;
+            }
+            
+            // Actualizar visualización de fórmulas y recalcular
+            updateFormulaDisplay();
+            setTimeout(calculateAndPlot, 500);
+        }
+
+        // Función para alternar la expresión de eficiencia personalizada (mantener compatibilidad)
+        function toggleEfficiencyExpression() {
+            const checkbox = document.getElementById('use-custom-efficiency');
+            setEfficiencyMode(checkbox.checked ? 'custom' : 'default');
         }
 
         // Función para actualizar la visualización de fórmulas
         function updateFormulaDisplay() {
             const isFractionMode = document.getElementById('fraction-mode-switch').checked;
             const useCustomEfficiency = document.getElementById('use-custom-efficiency').checked;
-            const efficiencyExpression = document.getElementById('efficiency-expression').value.trim();
             
+            // Actualizar fórmula de Md
             if (isFractionMode) {
                 // Modo fracción
                 const numerator = document.getElementById('md-numerator').value.trim();
@@ -921,8 +1247,30 @@
                 }
             }
             
-            if (useCustomEfficiency && efficiencyExpression) {
-                document.getElementById('current-efficiency-formula').textContent = `n = ${efficiencyExpression}`;
+            // Actualizar fórmula de eficiencia
+            if (useCustomEfficiency) {
+                const isEfficiencyFractionMode = document.getElementById('efficiency-fraction-mode-switch').checked;
+                
+                if (isEfficiencyFractionMode) {
+                    // Modo fracción para eficiencia
+                    const numerator = document.getElementById('efficiency-numerator').value.trim();
+                    const denominator = document.getElementById('efficiency-denominator').value.trim();
+                    
+                    if (numerator && denominator) {
+                        document.getElementById('current-efficiency-formula').textContent = `n = (${numerator}) / (${denominator})`;
+                    } else {
+                        document.getElementById('current-efficiency-formula').textContent = `n = [Incompleto]`;
+                    }
+                } else {
+                    // Modo simple para eficiencia
+                    const expression = document.getElementById('efficiency-simple').value.trim();
+                    
+                    if (expression) {
+                        document.getElementById('current-efficiency-formula').textContent = `n = ${expression}`;
+                    } else {
+                        document.getElementById('current-efficiency-formula').textContent = `n = [Incompleto]`;
+                    }
+                }
             } else {
                 document.getElementById('current-efficiency-formula').textContent = `n = (1-D) / ((1-D) + Rl/(R-R*D))`;
             }
@@ -1118,12 +1466,27 @@
                 // Validar expresión de eficiencia si está habilitada
                 const useCustomEfficiency = document.getElementById('use-custom-efficiency').checked;
                 if (useCustomEfficiency) {
-                    const efficiencyExpression = document.getElementById('efficiency-expression').value.trim();
-                    if (!efficiencyExpression) {
-                        throw new Error('Debes escribir una expresión para la eficiencia');
-                    }
-                    if (!validateExpression(efficiencyExpression)) {
-                        throw new Error('La expresión de eficiencia contiene errores de sintaxis');
+                    const isEfficiencyFractionMode = document.getElementById('efficiency-fraction-mode-switch').checked;
+                    
+                    if (isEfficiencyFractionMode) {
+                        const numerator = document.getElementById('efficiency-numerator').value.trim();
+                        const denominator = document.getElementById('efficiency-denominator').value.trim();
+                        
+                        if (!numerator || !denominator) {
+                            throw new Error('Debes escribir tanto el numerador como el denominador para la eficiencia');
+                        }
+                        
+                        if (!validateExpression(numerator) || !validateExpression(denominator)) {
+                            throw new Error('La expresión de eficiencia contiene errores de sintaxis');
+                        }
+                    } else {
+                        const efficiencyExpression = document.getElementById('efficiency-simple').value.trim();
+                        if (!efficiencyExpression) {
+                            throw new Error('Debes escribir una expresión para la eficiencia');
+                        }
+                        if (!validateExpression(efficiencyExpression)) {
+                            throw new Error('La expresión de eficiencia contiene errores de sintaxis');
+                        }
                     }
                 }
 
@@ -1573,13 +1936,29 @@
             insertText(targetField, text);
         }
 
+        // Función para insertar texto en el campo activo de eficiencia (para modo fracción)
+        function insertTextToActiveEfficiency(text) {
+            const activeElement = document.activeElement;
+            
+            // Determinar qué campo usar
+            let targetField = 'efficiency-numerator'; // Por defecto numerador
+            
+            if (activeElement && (activeElement.id === 'efficiency-numerator' || activeElement.id === 'efficiency-denominator')) {
+                targetField = activeElement.id;
+            }
+            
+            insertText(targetField, text);
+        }
+
         // Calcular automáticamente al cargar la página
         window.addEventListener('load', function() {
-            // Inicializar en modo simple por defecto
-            document.getElementById('simple-mode').classList.add('active');
-            document.getElementById('fraction-mode').classList.add('hidden');
-            document.getElementById('simple-label').classList.add('active');
-            document.getElementById('fraction-label').classList.remove('active');
+            // Inicializar en modo simple por defecto para Md
+            document.getElementById('simple-mode').style.display = 'block';
+            document.getElementById('fraction-mode').style.display = 'none';
+            
+            // Inicializar en modo por defecto para eficiencia
+            document.getElementById('efficiency-default-mode').style.display = 'block';
+            document.getElementById('efficiency-custom-mode').style.display = 'none';
             
             updateFormulaDisplay();
             setTimeout(calculateAndPlot, 1000);
@@ -1618,8 +1997,23 @@
             this.timeout = setTimeout(calculateAndPlot, 1500);
         });
 
-        document.getElementById('efficiency-expression').addEventListener('input', function() {
-            validateExpressionRealTime('efficiency-expression');
+        // Event listeners para los campos de eficiencia
+        document.getElementById('efficiency-simple').addEventListener('input', function() {
+            validateExpressionRealTime('efficiency-simple');
+            updateFormulaDisplay();
+            clearTimeout(this.timeout);
+            this.timeout = setTimeout(calculateAndPlot, 1500);
+        });
+
+        document.getElementById('efficiency-numerator').addEventListener('input', function() {
+            validateExpressionRealTime('efficiency-numerator');
+            updateFormulaDisplay();
+            clearTimeout(this.timeout);
+            this.timeout = setTimeout(calculateAndPlot, 1500);
+        });
+
+        document.getElementById('efficiency-denominator').addEventListener('input', function() {
+            validateExpressionRealTime('efficiency-denominator');
             updateFormulaDisplay();
             clearTimeout(this.timeout);
             this.timeout = setTimeout(calculateAndPlot, 1500);
